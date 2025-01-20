@@ -1,6 +1,7 @@
 "use server"
 import connectMongoDB from '@/config/connectMongoDB.js';
 import Category from '@/models/CategoryModel.js';
+import { revalidatePath } from 'next/cache';
 const data = [
     {
         _id: "1",
@@ -24,7 +25,7 @@ export const getCategories = async () => {
         if(results.length === 0){
             return data
         }
-        return results
+        return JSON.parse(JSON.stringify(results))
     } catch (error) {
         return {
             error,
@@ -36,22 +37,7 @@ export const getCategoryById = async (id) => {
     try {
         await connectMongoDB();
         const results = await Category.findById(id);
-        return results
-    } catch (error) {
-        return {
-            error,
-            msg: "Error Finding Category"
-        }
-    }
-}
-export const getLessonsByCategory = async (id) => {
-    if (!id) {
-        return null;
-    }
-    try {
-        await connectMongoDB();
-        const results = await Category.find({ category: id });
-        return results
+        return JSON.parse(JSON.stringify(results))
     } catch (error) {
         return {
             error,
@@ -70,7 +56,8 @@ export const createCategory = async ({
             slug,
             rootCategory: true,
         });
-        return results
+        revalidatePath("/");
+        return JSON.parse(JSON.stringify(results))
     } catch (error) {
         return {
             error,
@@ -82,6 +69,7 @@ export const deleteCategory = async (id) => {
     try {
         await connectMongoDB();
         const results = await Category.findByIdAndDelete(id);
+        revalidatePath("/");
         return results
     } catch (error) {
         return {

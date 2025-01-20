@@ -1,6 +1,7 @@
 "use server"
 import connectMongoDB from '@/config/connectMongoDB.js';
 import Lesson from '@/models/LessonModel.js';
+import { revalidatePath } from 'next/cache';
 const data = [
     {
         _id: "1",
@@ -17,14 +18,15 @@ const data = [
         category: 2,
     },
 ]
-export const getCategories = async () => {
+export const getLessons = async () => {
     try {
         await connectMongoDB();
         const results = await Lesson.find();        
         if(results.length === 0){
             return data
         }
-        return results
+        revalidatePath("/lessons")
+        return JSON.parse(JSON.stringify(results))
     } catch (error) {
         return {
             error,
@@ -36,11 +38,27 @@ export const getLessonById = async (id) => {
     try {
         await connectMongoDB();
         const results = await Lesson.findById(id);
-        return results
+        return JSON.parse(JSON.stringify(results))
     } catch (error) {
         return {
             error,
             msg: "Error Finding Lesson"
+        }
+    }
+}
+
+export const getLessonsByCategory = async (id) => {
+    if (!id) {
+        return null;
+    }
+    try {
+        await connectMongoDB();
+        const results = await Lesson.find({ category: id });
+        return JSON.parse(JSON.stringify(results))
+    } catch (error) {
+        return {
+            error,
+            msg: "Error Finding Category"
         }
     }
 }
@@ -58,7 +76,8 @@ export const createLesson = async ({
             content,
             category
         });
-        return results
+        revalidatePath(`/lessons?category=${category}`);
+        return JSON.parse(JSON.stringify(results))
     } catch (error) {
         return {
             error,
@@ -70,7 +89,8 @@ export const deleteLesson = async (id) => {
     try {
         await connectMongoDB();
         const results = await Lesson.findByIdAndDelete(id);
-        return results
+        revalidatePath("/lessons")
+        return JSON.parse(JSON.stringify(results))
     } catch (error) {
         return {
             error,
