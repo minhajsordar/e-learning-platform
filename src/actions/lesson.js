@@ -29,11 +29,12 @@ export const getLessons = async () => {
         return JSON.parse(JSON.stringify(results))
     } catch (error) {
         return {
-            error,
-            msg: "Error Finding Lesson"
+            error: true, 
+            msg: error.message,
         }
     }
 }
+
 export const getLessonById = async (id) => {
     try {
         await connectMongoDB();
@@ -80,11 +81,45 @@ export const createLesson = async ({
         return JSON.parse(JSON.stringify(results))
     } catch (error) {
         return {
-            error,
-            msg: "Error Creating Lesson"
+            error: true,
+            msg: error.message, 
         }
     }
 }
+
+export const editLesson = async (id, { name, slug, content, category }) => {
+    try {
+        await connectMongoDB();
+
+        // Update the lesson by id
+        const updatedLesson = await Lesson.findByIdAndUpdate(
+            id,
+            { name, slug, content, category }, // Fields to update
+            { new: true } // Return the updated document
+        );
+
+        // If the lesson was not found
+        if (!updatedLesson) {
+            return {
+                error: true,
+                msg: "Lesson not found",
+            };
+        }
+
+        // Revalidate the relevant path
+        revalidatePath(`/lessons?category=${category}`);
+
+        // Return the updated lesson
+        return JSON.parse(JSON.stringify(updatedLesson));
+    } catch (error) {
+        return {
+            error: true,
+            msg: error.message,
+        };
+    }
+};
+
+
 export const deleteLesson = async (id) => {
     try {
         await connectMongoDB();

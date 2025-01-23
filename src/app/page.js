@@ -1,8 +1,10 @@
 import { getCategories } from "@/actions/category";
 import CreateCategoryButton from "@/components/CreateCategoryButton";
+import MarkdownText from "@/components/MarkDownText";
 import Link from "next/link";
 export default async function Home() {
   const categories = await getCategories();
+  console.log({ categories });
   return (
     <div className=" container mx-auto">
       <div className="flex justify-between items-center">

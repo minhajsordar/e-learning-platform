@@ -6,6 +6,7 @@ export default function CreateCategoryButton() {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [isModalOpen, setModalOpen] = useState(false);
+  
   const handleSave = async (e) => {
     e.preventDefault();
     if (!name || !slug) {
